@@ -126,12 +126,17 @@
         padding: 14px 14px 10px;
         border-bottom: 1px solid var(--stroke);
         background: color-mix(in srgb, var(--panel) 70%, transparent);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
 
       .card-header h2 {
         margin: 0;
         font-size: 16px;
         letter-spacing: -0.2px;
+        min-width: 0;
       }
 
       .card-body {
@@ -196,6 +201,14 @@
       .btn.primary {
         border-color: color-mix(in srgb, var(--accent) 40%, var(--stroke));
         background: color-mix(in srgb, var(--accent) 22%, var(--panel-2));
+      }
+
+      .btn.small {
+        padding: 9px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
       }
 
       .btn:focus-visible {
@@ -277,6 +290,7 @@
       <main class="card">
         <div class="card-header">
           <h2 id="title">Preparing…</h2>
+          <button id="recent-btn" class="btn small" type="button">Recent generations</button>
         </div>
         <div class="card-body">
           <div class="meta">
@@ -519,6 +533,9 @@
       }
 
       $("refresh-btn").addEventListener("click", () => loadOnce({ allowQueueGeneration: false }));
+      $("recent-btn").addEventListener("click", () => {
+        location.href = "recent.html";
+      });
 
       // Initial load: check DB, then queue generation if missing.
       loadOnce({ allowQueueGeneration: true });

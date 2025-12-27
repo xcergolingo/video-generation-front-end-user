@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Recent Generations</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-2: rgba(255, 255, 255, 0.09);
+        --stroke: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.68);
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+        --radius: 16px;
+        --radius-sm: 12px;
+        --focus: 0 0 0 4px rgba(124, 92, 255, 0.35);
+        --accent: #7c5cff;
+        --ok: #19c37d;
+        --bad: #ff4d4d;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f5f7ff;
+          --panel: rgba(255, 255, 255, 0.88);
+          --panel-2: rgba(255, 255, 255, 0.97);
+          --stroke: rgba(0, 0, 0, 0.08);
+          --text: rgba(15, 23, 42, 0.92);
+          --muted: rgba(15, 23, 42, 0.62);
+          --shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial;
+        color: var(--text);
+        background:
+          radial-gradient(1200px 700px at 15% -10%, rgba(124, 92, 255, 0.45), transparent 55%),
+          radial-gradient(900px 600px at 90% 0%, rgba(25, 195, 125, 0.22), transparent 50%),
+          radial-gradient(1000px 900px at 50% 110%, rgba(124, 92, 255, 0.18), transparent 60%),
+          var(--bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 18px 14px 28px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 2px 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background:
+          radial-gradient(12px 12px at 30% 30%, rgba(255, 255, 255, 0.55), transparent 60%),
+          linear-gradient(135deg, rgba(124, 92, 255, 1), rgba(25, 195, 125, 1));
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+        border: 1px solid color-mix(in srgb, var(--stroke) 55%, transparent);
+        flex: 0 0 auto;
+      }
+
+      .brand h1 {
+        font-size: 14px;
+        margin: 0;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .brand p {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .card {
+        border: 1px solid var(--stroke);
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: clip;
+      }
+
+      .card-header {
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--stroke);
+        background: color-mix(in srgb, var(--panel) 70%, transparent);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .card-header h2 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: -0.2px;
+      }
+
+      .card-body {
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--stroke);
+        background: var(--panel-2);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--muted) 70%, transparent);
+      }
+
+      .dot.ok {
+        background: var(--ok);
+      }
+
+      .dot.bad {
+        background: var(--bad);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn {
+        appearance: none;
+        border: 1px solid var(--stroke);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: var(--panel-2);
+        color: var(--text);
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .btn.primary {
+        border-color: color-mix(in srgb, var(--accent) 40%, var(--stroke));
+        background: color-mix(in srgb, var(--accent) 22%, var(--panel-2));
+      }
+
+      .btn:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      .btn[disabled] {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .item {
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius-sm);
+        background: color-mix(in srgb, var(--panel-2) 65%, transparent);
+        overflow: clip;
+      }
+
+      .item-top {
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--stroke);
+        background: color-mix(in srgb, var(--panel) 70%, transparent);
+      }
+
+      .item-top strong {
+        font-size: 13px;
+      }
+
+      .item-meta {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      video {
+        width: 100%;
+        height: auto;
+        display: block;
+        background: #000;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      footer {
+        padding: 14px 2px 0;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand" aria-label="Site title">
+          <div class="logo" aria-hidden="true"></div>
+          <div style="min-width: 0">
+            <h1>Recent generations</h1>
+            <p>Most recently generated videos.</p>
+          </div>
+        </div>
+        <button id="back-btn" class="btn" type="button">Back</button>
+      </header>
+
+      <main class="card">
+        <div class="card-header">
+          <h2>Recent list</h2>
+          <div class="actions">
+            <button id="refresh-btn" class="btn primary" type="button">Refresh</button>
+            <span class="pill" aria-live="polite">
+              <span id="status-dot" class="dot" aria-hidden="true"></span>
+              <span id="status-text">Not loaded</span>
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="recent-list" class="list" aria-live="polite"></div>
+        </div>
+      </main>
+
+      <footer>© GoLingo App</footer>
+    </div>
+
+    <script>
+      const API_BASE = "https://ln686uub5b.execute-api.us-east-1.amazonaws.com/prod/video-generation";
+      const VIDEO_PREFIX = "https://d1vly1vxrll6os.cloudfront.net/";
+
+      const $ = (id) => document.getElementById(id);
+
+      function normalizePrefix(prefix) {
+        const value = (prefix || "").trim();
+        if (!value) return "";
+        return value.endsWith("/") ? value : value + "/";
+      }
+
+      function buildVideoUrl(s3Key) {
+        if (!s3Key) return "";
+        return normalizePrefix(VIDEO_PREFIX) + s3Key;
+      }
+
+      function safeJsonStringify(value) {
+        try {
+          return JSON.stringify(value);
+        } catch {
+          return String(value);
+        }
+      }
+
+      function setStatus(state, text) {
+        const dot = $("status-dot");
+        const label = $("status-text");
+        label.textContent = text;
+        dot.classList.remove("ok", "bad");
+        if (state === "ok") dot.classList.add("ok");
+        if (state === "bad") dot.classList.add("bad");
+      }
+
+      async function postJson(url, body) {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: body ? JSON.stringify(body) : "{}",
+        });
+
+        const text = await res.text();
+        let json = null;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch {
+          json = { raw: text };
+        }
+
+        if (!res.ok) {
+          const message = (json && (json.message || json.error)) ? (json.message || json.error) : `HTTP ${res.status}`;
+          const err = new Error(message);
+          err.status = res.status;
+          err.body = json;
+          throw err;
+        }
+        return json;
+      }
+
+      function renderRecentList(videos) {
+        const list = $("recent-list");
+        list.innerHTML = "";
+
+        if (!Array.isArray(videos) || videos.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "muted";
+          empty.textContent = "No recent videos returned.";
+          list.appendChild(empty);
+          return;
+        }
+
+        for (const v of videos) {
+          const word = v?.word ?? "";
+          const language = v?.language ?? "";
+          const createdAt = v?.created_at ?? "";
+          const s3Key = v?.s3_key ?? "";
+          const url = s3Key ? buildVideoUrl(s3Key) : "";
+
+          const item = document.createElement("div");
+          item.className = "item";
+
+          const top = document.createElement("div");
+          top.className = "item-top";
+
+          const left = document.createElement("div");
+          const strong = document.createElement("strong");
+          strong.textContent = word ? String(word) : "(unknown word)";
+          left.appendChild(strong);
+          top.appendChild(left);
+
+          const meta = document.createElement("div");
+          meta.className = "item-meta";
+          const parts = [];
+          if (language) parts.push(String(language));
+          if (createdAt) parts.push(String(createdAt));
+          meta.textContent = parts.join(" • ");
+          top.appendChild(meta);
+
+          item.appendChild(top);
+
+          if (url) {
+            const video = document.createElement("video");
+            video.controls = true;
+            video.preload = "metadata";
+            video.src = url;
+            item.appendChild(video);
+          } else {
+            const note = document.createElement("div");
+            note.className = "muted";
+            note.style.padding = "10px 12px 12px";
+            note.textContent = "Missing s3_key for this item.";
+            item.appendChild(note);
+          }
+
+          list.appendChild(item);
+        }
+      }
+
+      async function refreshRecent() {
+        setStatus("", "Loading…");
+        $("refresh-btn").disabled = true;
+        try {
+          const data = await postJson(`${API_BASE}/recent`, null);
+          const videos = data?.videos ?? data ?? [];
+          renderRecentList(videos);
+          setStatus("ok", "Loaded");
+        } catch (err) {
+          $("recent-list").innerHTML = "";
+          const msg = document.createElement("div");
+          msg.className = "muted";
+          const details = err?.body ? ` (${safeJsonStringify(err.body)})` : "";
+          msg.textContent = `Error: ${err.message}${details}`;
+          $("recent-list").appendChild(msg);
+          setStatus("bad", "Error");
+        } finally {
+          $("refresh-btn").disabled = false;
+        }
+      }
+
+      $("back-btn").addEventListener("click", () => {
+        location.href = "index.html";
+      });
+      $("refresh-btn").addEventListener("click", refreshRecent);
+
+      refreshRecent();
+    </script>
+  </body>
+</html>
