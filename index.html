@@ -139,6 +139,22 @@
         min-width: 0;
       }
 
+      .title-block {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .phonetic {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       .card-body {
         padding: 14px;
         display: grid;
@@ -312,7 +328,10 @@
 
       <main class="card">
         <div class="card-header">
-          <h2 id="title">Preparing…</h2>
+          <div class="title-block">
+            <h2 id="title">Preparing…</h2>
+            <div id="phonetic" class="phonetic" aria-live="polite"></div>
+          </div>
           <button id="recent-btn" class="btn small" type="button">Recent generations</button>
         </div>
         <div class="card-body">
@@ -368,12 +387,15 @@
     <script>
       const API_BASE = "https://ln686uub5b.execute-api.us-east-1.amazonaws.com/prod/video-generation";
       const VIDEO_PREFIX = "https://d1vly1vxrll6os.cloudfront.net/";
+      const PHONETIC_API = "https://e86m6e34ra.execute-api.us-east-1.amazonaws.com/prod/";
 
       const EMAILJS_TEMPLATE_ID = "template_b5e3z3s";
       const EMAILJS_SERVICE_ID = "service_qog4aki";
       const EMAILJS_PUBLIC_KEY = "h76eERmw-nGkCVvMQ";
 
       const $ = (id) => document.getElementById(id);
+      const phoneticCache = new Map();
+      let latestPhoneticRequestId = 0;
 
       function initEmailJs() {
         try {
@@ -469,6 +491,7 @@
       function renderHeader({ word, language }) {
         $("language-pill").textContent = language;
         $("title").textContent = `“${word}”`;
+        $("phonetic").textContent = "";
         $("subtitle").textContent = "Loads an existing video.";
       }
 
@@ -530,6 +553,38 @@
         await postJson(`${API_BASE}/generate`, { word, language });
       }
 
+      function extractPhoneticFromResponse(data) {
+        const result = data?.body?.result ?? data?.result ?? data?.body?.phonetic ?? data?.phonetic;
+        return typeof result === "string" ? result.trim() : "";
+      }
+
+      async function lookupPhonetic({ word, language }) {
+        const key = `${language}::${word}`.toLowerCase();
+        if (phoneticCache.has(key)) return phoneticCache.get(key) || "";
+
+        const data = await postJson(PHONETIC_API, { word, lang: language });
+        const result = extractPhoneticFromResponse(data);
+        phoneticCache.set(key, result);
+        return result;
+      }
+
+      async function loadPhonetic({ word, language }) {
+        const requestId = ++latestPhoneticRequestId;
+        const el = $("phonetic");
+        el.setAttribute("aria-busy", "true");
+        el.textContent = "…";
+        try {
+          const result = await lookupPhonetic({ word, language });
+          if (requestId !== latestPhoneticRequestId) return;
+          el.textContent = result || "";
+        } catch {
+          if (requestId !== latestPhoneticRequestId) return;
+          el.textContent = "";
+        } finally {
+          if (requestId === latestPhoneticRequestId) el.removeAttribute("aria-busy");
+        }
+      }
+
       async function sendVote(vote) {
         const request = readParams();
         await postJson(`${API_BASE}/feedback`, { ...request, vote });
@@ -545,6 +600,7 @@
       async function loadOnce({ allowQueueGeneration }) {
         const request = readParams();
         renderHeader(request);
+        loadPhonetic(request);
         hideVideo();
 
         setStatus("", "Checking library…");
