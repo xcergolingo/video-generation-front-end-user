@@ -754,7 +754,10 @@
         }
       });
       $("recent-btn").addEventListener("click", () => {
-        location.href = "recent.html";
+        const { language } = readParams();
+        const url = new URL("recent.html", location.href);
+        if (language) url.searchParams.set("lang", language);
+        location.href = url.toString();
       });
 
       // Initial load: check DB, then queue generation if missing.

@@ -324,6 +324,12 @@
         if (state === "bad") dot.classList.add("bad");
       }
 
+      function readParams() {
+        const params = new URLSearchParams(location.search);
+        const rawLanguage = (params.get("language") || params.get("lang") || "").trim();
+        return { language: rawLanguage };
+      }
+
       async function postJson(url, body) {
         const res = await fetch(url, {
           method: "POST",
@@ -415,7 +421,9 @@
         setStatus("", "Loading…");
         $("refresh-btn").disabled = true;
         try {
-          const data = await postJson(`${API_BASE}/recent`, null);
+          const { language } = readParams();
+          const body = language ? { language } : {};
+          const data = await postJson(`${API_BASE}/recent`, body);
           const videos = data?.videos ?? data ?? [];
           renderRecentList(videos);
           setStatus("ok", "Loaded");
