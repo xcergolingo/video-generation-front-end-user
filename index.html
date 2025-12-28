@@ -364,11 +364,47 @@
       </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
       const API_BASE = "https://ln686uub5b.execute-api.us-east-1.amazonaws.com/prod/video-generation";
       const VIDEO_PREFIX = "https://d1vly1vxrll6os.cloudfront.net/";
 
+      const EMAILJS_TEMPLATE_ID = "template_b5e3z3s";
+      const EMAILJS_SERVICE_ID = "service_qog4aki";
+      const EMAILJS_PUBLIC_KEY = "h76eERmw-nGkCVvMQ";
+
       const $ = (id) => document.getElementById(id);
+
+      function initEmailJs() {
+        try {
+          if (!window.emailjs || typeof window.emailjs.init !== "function") return;
+          try {
+            window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+          } catch {
+            window.emailjs.init(EMAILJS_PUBLIC_KEY);
+          }
+        } catch {
+          // Non-blocking: email is best-effort.
+        }
+      }
+
+      function sendFeedbackEmail({ word, message }) {
+        try {
+          if (!window.emailjs || typeof window.emailjs.send !== "function") return Promise.resolve();
+          try {
+            return window.emailjs.send(
+              EMAILJS_SERVICE_ID,
+              EMAILJS_TEMPLATE_ID,
+              { word, message },
+              { publicKey: EMAILJS_PUBLIC_KEY },
+            );
+          } catch {
+            return window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { word, message });
+          }
+        } catch {
+          return Promise.resolve();
+        }
+      }
 
       function normalizePrefix(prefix) {
         const value = (prefix || "").trim();
@@ -582,11 +618,15 @@
         }
       }
 
+      initEmailJs();
+
       $("refresh-btn").addEventListener("click", () => loadOnce({ allowQueueGeneration: false }));
       $("thumbs-up-btn").addEventListener("click", async () => {
         $("thumbs-up-btn").disabled = true;
         $("thumbs-down-btn").disabled = true;
         $("feedback-btn").disabled = true;
+        const { word } = readParams();
+        sendFeedbackEmail({ word, message: "User clicked thumbs up." }).catch(() => {});
         try {
           await sendVote(1);
           $("message").textContent = "Thanks for the vote!";
@@ -603,6 +643,8 @@
         $("thumbs-up-btn").disabled = true;
         $("thumbs-down-btn").disabled = true;
         $("feedback-btn").disabled = true;
+        const { word } = readParams();
+        sendFeedbackEmail({ word, message: "User clicked thumbs down." }).catch(() => {});
         try {
           await sendVote(-1);
           $("message").textContent = "Thanks for the vote!";
@@ -638,6 +680,8 @@
         $("thumbs-up-btn").disabled = true;
         $("thumbs-down-btn").disabled = true;
         $("feedback-btn").disabled = true;
+        const { word } = readParams();
+        sendFeedbackEmail({ word, message: `User sent some feedback as: ${feedback}` }).catch(() => {});
         try {
           await sendFeedback(feedback);
           $("message").textContent = "Thanks for the feedback!";
