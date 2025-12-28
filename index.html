@@ -232,7 +232,8 @@
       }
 
       input[type="text"],
-      input[type="url"] {
+      input[type="url"],
+      textarea {
         width: 100%;
         padding: 12px 12px;
         border-radius: 12px;
@@ -242,10 +243,32 @@
         font-size: 16px;
       }
 
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
       .hint {
         color: var(--muted);
         font-size: 12px;
         line-height: 1.45;
+      }
+
+      .feedback-panel {
+        width: 100%;
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--stroke);
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--panel-2) 65%, transparent);
+      }
+
+      .feedback-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
       }
 
       .video-frame {
@@ -312,6 +335,23 @@
 
           <div class="actions">
             <button id="refresh-btn" class="btn primary" type="button">Refresh</button>
+            <button id="thumbs-up-btn" class="btn small" type="button" aria-label="Thumbs up vote">
+              👍
+            </button>
+            <button id="thumbs-down-btn" class="btn small" type="button" aria-label="Thumbs down vote">
+              👎
+            </button>
+            <button id="feedback-btn" class="btn small" type="button">Feedback</button>
+            <div id="feedback-panel" class="feedback-panel" hidden>
+              <div class="field">
+                <label for="feedback-input">Your feedback</label>
+                <textarea id="feedback-input" placeholder="Type feedback…"></textarea>
+              </div>
+              <div class="feedback-actions">
+                <button id="feedback-submit-btn" class="btn primary small" type="button">Submit</button>
+                <button id="feedback-cancel-btn" class="btn small" type="button">Cancel</button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -454,6 +494,16 @@
         await postJson(`${API_BASE}/generate`, { word, language });
       }
 
+      async function sendVote(vote) {
+        const request = readParams();
+        await postJson(`${API_BASE}/feedback`, { ...request, vote });
+      }
+
+      async function sendFeedback(feedback) {
+        const request = readParams();
+        await postJson(`${API_BASE}/feedback`, { ...request, feedback });
+      }
+
       let generationQueuedForThisWord = false;
 
       async function loadOnce({ allowQueueGeneration }) {
@@ -533,6 +583,76 @@
       }
 
       $("refresh-btn").addEventListener("click", () => loadOnce({ allowQueueGeneration: false }));
+      $("thumbs-up-btn").addEventListener("click", async () => {
+        $("thumbs-up-btn").disabled = true;
+        $("thumbs-down-btn").disabled = true;
+        $("feedback-btn").disabled = true;
+        try {
+          await sendVote(1);
+          $("message").textContent = "Thanks for the vote!";
+        } catch {
+          $("message").textContent = "Could not submit vote. Try again later.";
+        } finally {
+          $("thumbs-up-btn").disabled = false;
+          $("thumbs-down-btn").disabled = false;
+          $("feedback-btn").disabled = false;
+        }
+      });
+
+      $("thumbs-down-btn").addEventListener("click", async () => {
+        $("thumbs-up-btn").disabled = true;
+        $("thumbs-down-btn").disabled = true;
+        $("feedback-btn").disabled = true;
+        try {
+          await sendVote(-1);
+          $("message").textContent = "Thanks for the vote!";
+        } catch {
+          $("message").textContent = "Could not submit vote. Try again later.";
+        } finally {
+          $("thumbs-up-btn").disabled = false;
+          $("thumbs-down-btn").disabled = false;
+          $("feedback-btn").disabled = false;
+        }
+      });
+
+      $("feedback-btn").addEventListener("click", () => {
+        const panel = $("feedback-panel");
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) $("feedback-input").focus();
+      });
+
+      $("feedback-cancel-btn").addEventListener("click", () => {
+        $("feedback-panel").hidden = true;
+        $("feedback-input").value = "";
+      });
+
+      $("feedback-submit-btn").addEventListener("click", async () => {
+        const feedback = ($("feedback-input").value || "").trim();
+        if (!feedback) {
+          $("message").textContent = "Please enter feedback before submitting.";
+          return;
+        }
+
+        $("feedback-submit-btn").disabled = true;
+        $("feedback-cancel-btn").disabled = true;
+        $("thumbs-up-btn").disabled = true;
+        $("thumbs-down-btn").disabled = true;
+        $("feedback-btn").disabled = true;
+        try {
+          await sendFeedback(feedback);
+          $("message").textContent = "Thanks for the feedback!";
+          $("feedback-input").value = "";
+          $("feedback-panel").hidden = true;
+        } catch {
+          $("message").textContent = "Could not submit feedback. Try again later.";
+        } finally {
+          $("feedback-submit-btn").disabled = false;
+          $("feedback-cancel-btn").disabled = false;
+          $("thumbs-up-btn").disabled = false;
+          $("thumbs-down-btn").disabled = false;
+          $("feedback-btn").disabled = false;
+        }
+      });
       $("recent-btn").addEventListener("click", () => {
         location.href = "recent.html";
       });
